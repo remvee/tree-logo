@@ -20,6 +20,26 @@
                           :growth 0.6
                           :depth  5}))
 
+(defn set-browser-state! [val]
+  (set! (-> js/window .-location .-hash)
+        (s/join ","
+                (reduce (fn [m [k v]] (conj m (str (name k) "=" v)))
+                        []
+                        val))))
+
+(defn get-browser-state! []
+  (let [new-state (reduce (fn [m pair]
+                            (let [[k v] (s/split pair #"=")]
+                              (if (and k v)
+                                (assoc m (keyword k) (js/parseFloat v))
+                                m)))
+                          {}
+                          (-> js/window .-location .-hash (s/replace #"^#" "") (s/split #"[,]")))]
+    (swap! app-state merge new-state)))
+
+(add-watch app-state :browser-state (fn [_ _ _ val] (set-browser-state! val)))
+(defonce get-state-on-load (get-browser-state!))
+
 (defn polyline [[[x1 y1] [x2 y2] :as points] k]
   (let [x   (- x1 x2)
         y   (- y1 y2)
