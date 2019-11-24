@@ -4,20 +4,21 @@
 
 (enable-console-print!)
 
-(def one-rad (/ Math/PI 180))
+(def to-rad (partial * (/ Math/PI 180)))
 
 (defn sin [deg]
-  (Math/sin (* one-rad deg)))
+  (Math/sin (to-rad deg)))
 
 (defn cos [deg]
-  (Math/cos (* one-rad deg)))
+  (Math/cos (to-rad deg)))
 
 (defn abs [v]
   (if (pos? v) v (* -1 v)))
 
-;; define your app data so that it doesn't get over-written on reload
-
-(defonce app-state (atom {:text "Hello world!"}))
+(defonce app-state (atom {:stroke 2
+                          :angle  60
+                          :growth 0.6
+                          :depth  5}))
 
 (defn polyline [[[x1 y1] [x2 y2] :as points] k]
   (let [x   (- x1 x2)
@@ -27,11 +28,8 @@
      {:key          k
       :fill         "none"
       :stroke       "black"
-      :stroke-width (/ len 2)
+      :stroke-width (/ len (:stroke @app-state))
       :points       (s/join " " (map (fn [[x y]] (str x "," y)) points))}]))
-
-(def vs (map (fn [v] [[0 0] 100 v])
-             (range 1 360 20)))
 
 (defn line [[[x y] length deg]]
   [[x y]
@@ -39,14 +37,15 @@
     (+ y (* (cos deg) length))]])
 
 (defn next-line [[[_ _] length deg :as prev] op]
-  (let [[[_ _] [x y]]      (line prev)]
-    [[x y] (* length 0.6) (op deg 60)]))
+  (let [{:keys [angle growth]} @app-state
+        [[_ _] [x y]]          (line prev)]
+    [[x y] (* length growth) (op deg angle)]))
 
 (defn tree
   ([]
    (tree [[0 0] 100 -180] 1))
   ([trunk depth]
-   (if (> depth 5)
+   (if (> depth (:depth @app-state))
      [trunk]
      (let [prev-line trunk]
        [trunk [(tree (next-line prev-line +) (inc depth))
@@ -81,19 +80,28 @@
                    (max max-x max-y)
                    (* padding 2)))}
      [:g
-      (map (fn [points i] (polyline points i))
-           lines
-           (iterate inc 0))]]))
+      (doall
+       (map (fn [points i] (polyline points i))
+            lines
+            (iterate inc 0)))]]))
+
+(defn input-range [name path attrs]
+  (let [val (get-in @app-state path)]
+    [:label
+     [:span (str " " name " (" val ")")]
+     [:input (merge {:type      "range"
+                     :value     val
+                     :on-change #(swap! app-state assoc-in path (-> % .-target .-value js/parseFloat))}
+                    attrs)]]))
 
 (defn hello-world []
-  [:div
+  [:main
+   [:div.controls
+    (input-range "Stroke" [:stroke] {:min 1 :max 10 :step 0.1})
+    (input-range "Angle" [:angle] {:min 1 :max 90 :step 1})
+    (input-range "Growth" [:growth] {:min 0.1 :max 1 :step 0.01})
+    (input-range "Depth" [:depth] {:min 1 :max 10 :step 1})]
    [svg-component]])
 
 (reagent/render-component [hello-world]
                           (. js/document (getElementById "app")))
-
-(defn on-js-reload []
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)

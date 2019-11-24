@@ -1,2 +1,16 @@
 /* some style */
 
+main {
+    position: relative;
+}
+.controls {
+    left: 800px;
+    position: absolute;
+}
+label {
+    display: block;
+}
+label span {
+    width: 8em;
+    display: inline-block;
+}
