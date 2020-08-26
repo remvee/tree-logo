@@ -1,11 +1,19 @@
 /* some style */
 
+body {
+    background: #fff;
+    color: #000;
+    font-family: sans-serif;
+}
+
 main {
     position: relative;
 }
 .controls {
-    left: 800px;
+    right: 0px;
     position: absolute;
+    background: rgba(255,255,255,.5);
+    padding: .5em;
 }
 label {
     display: block;

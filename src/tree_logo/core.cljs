@@ -1,6 +1,7 @@
 (ns tree-logo.core
   (:require  [clojure.string :as s]
-             [reagent.core :as reagent :refer [atom]]))
+             [reagent.core :as reagent :refer [atom]]
+             [reagent.dom :as reagent-dom]))
 
 (enable-console-print!)
 
@@ -77,28 +78,25 @@
           (when right (branches right))))
 
 (defn svg-component []
-  (let [lines  (branches (tree))
-        points (mapcat identity lines)
+  (let [lines   (branches (tree))
+        points  (mapcat identity lines)
         padding 10
-        min-x  (apply min (map first points))
-        min-y  (apply min (map last points))
-        max-x  (apply max (map first points))
-        max-y  (apply max (map last points))]
+        min-z   (min (apply min (map first points))
+                     (apply min (map last points)))
+        max-z   (max (apply max (map first points))
+                     (apply max (map last points)))]
     [:svg {:xmlns   "http://www.w3.org/2000/svg"
            :version "1.1"
-           :width   800
-           :height  800
-           :viewBox #_"-20 -20 40 40"
-           (str (- (min min-x min-y)
-                   padding) " "
-                (- (min min-x min-y)
-                   padding) " "
-                (+ (abs (min min-x min-y))
-                   (max max-x max-y)
-                   (* padding 2)) " "
-                (+ (abs (min min-x min-y))
-                   (max max-x max-y)
-                   (* padding 2)))}
+           :width   500
+           :height  500
+           :viewBox (str (- min-z
+                            padding) " "
+                         (- min-z
+                            padding) " "
+                         (+ (- max-z min-z)
+                            (* padding 2)) " "
+                         (+ (-  max-z min-z)
+                            (* padding 2)))}
      [:g
       (doall
        (map (fn [points i] (polyline points i))
@@ -123,5 +121,5 @@
     (input-range "Depth" [:depth] {:min 1 :max 10 :step 1})]
    [svg-component]])
 
-(reagent/render-component [hello-world]
-                          (. js/document (getElementById "app")))
+(reagent-dom/render [hello-world]
+                    (. js/document (getElementById "app")))

@@ -1,0 +1,24 @@
+* tree-logo
+
+  Experimenting with a tree for a logo..
+
+** Usage
+
+   Build it:
+
+   #+begin_src sh
+     lein cljsbuild once
+   #+end_src
+
+   Experiment:
+
+   #+begin_src sh
+     open resources/public/index.html
+   #+end_src
+
+** License
+
+   Copyright © 2020 R.W. van 't Veer
+
+   Distributed under the Eclipse Public License either version 1.0 or
+   (at your option) any later version.
