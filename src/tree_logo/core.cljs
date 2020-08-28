@@ -18,7 +18,7 @@
 
 (defonce app-state (atom {:stroke 2
                           :angle  60
-                          :growth 0.6
+                          :growth 0.66
                           :depth  5}))
 
 (defn set-browser-state! [val]
